@@ -64,3 +64,16 @@ class TestCategorizeSignals(NIOBlockTestCase):
             'text': 'pattern1b and pattern2b',
             'cats': ['cat1', 'cat2']
         })
+
+    def test_invalid_match_string(self):
+        blk = CategorizeSignals()
+        self.configure_block(blk, {
+            'string': '{{ text }}',
+            'categories': self._categories_config
+        })
+        blk.start()
+        blk.process_signals([
+            Signal({'text': 'pattern1a'})
+        ])
+        blk.stop()
+        self.assert_num_signals_notified(1)

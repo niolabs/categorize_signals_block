@@ -48,14 +48,21 @@ class CategorizeSignals(Block):
         return return_list
 
     def _process_signal(self, signal):
+        # Prepare signal by checking the category attribute and Match String
+        if not hasattr(signal, self.attr):
+            setattr(signal, self.attr, [])
+        if not isinstance(getattr(signal, self.attr), list):
+            self._logger.exception(
+                'Category attribute needs to be a list: {}'.format(self.attr))
+            return
+        try:
+            match_string = str(self.string(signal))
+        except:
+            self._logger.exception(
+                'Match String needs to evaluate to a string')
+            return
+        # Check if regex matches and append category to attr if match
         for category in self._compiled:
-            # Prepare signal by checking the caetgory attribute
-            if not hasattr(signal, self.attr):
-                setattr(signal, self.attr, [])
-            if not isinstance(getattr(signal, self.attr), list):
-                self._logger.exception('Signal category attribute is not list')
-                return
-            # Check if regex matchces and append category to attr if match
-            match = category[1].search(str(self.string(signal)))
+            match = category[1].search(match_string)
             if match is not None:
                 getattr(signal, self.attr).append(category[0])
