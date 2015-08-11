@@ -73,7 +73,11 @@ class TestCategorizeSignals(NIOBlockTestCase):
         })
         blk.start()
         blk.process_signals([
-            Signal({'text': 'pattern1a'})
+            Signal({'text': 'badbadbad'})
         ])
         blk.stop()
         self.assert_num_signals_notified(1)
+        self.assertDictEqual(self.last_notified['default'][0].to_dict(), {
+            'text': 'badbadbad',
+            'cats': []
+        })
