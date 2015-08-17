@@ -2,7 +2,7 @@ import re
 from nio.common.block.base import Block
 from nio.common.discovery import Discoverable, DiscoverableType
 from nio.metadata.properties import StringProperty, ExpressionProperty, \
-    VersionProperty, ObjectProperty, PropertyHolder, ListProperty
+    VersionProperty, ObjectProperty, PropertyHolder, ListProperty, BoolProperty
 
 
 class Category(PropertyHolder):
@@ -20,6 +20,7 @@ class CategorizeSignals(Block):
     string = ExpressionProperty(title="Match String",
                                 default='', attr_default=Exception)
     categories = ListProperty(Category, title='Categories')
+    ignore_case = BoolProperty(title="Ignore Case", default=False)
 
     def __init__(self):
         super().__init__()
@@ -43,8 +44,13 @@ class CategorizeSignals(Block):
         """
         return_list = []
         for category in self.categories:
-            return_list.append((category.category,
-                                re.compile('|'.join(category.patterns))))
+            if self.ignore_case:
+                c = (category.category,
+                     re.compile('|'.join(category.patterns), re.I))
+            else:
+                c = (category.category,
+                     re.compile('|'.join(category.patterns)))
+            return_list.append(c)
         return return_list
 
     def _process_signal(self, signal):

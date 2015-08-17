@@ -65,6 +65,45 @@ class TestCategorizeSignals(NIOBlockTestCase):
             'cats': ['cat1', 'cat2']
         })
 
+    def test_ignore_case(self):
+        blk = CategorizeSignals()
+        self.configure_block(blk, {
+            'string': '{{ $text }}',
+            'categories': [{
+                'category': 'cat1',
+                'patterns': ['match']
+            }],
+            'ignore_case': False
+        })
+        blk.start()
+        blk.process_signals([
+            Signal({'text': 'NO MATCH'})
+        ])
+        blk.stop()
+        self.assert_num_signals_notified(1)
+        self.assertDictEqual(self.last_notified['default'][0].to_dict(), {
+            'text': 'NO MATCH',
+            'cats': []
+        })
+        self.configure_block(blk, {
+            'string': '{{ $text }}',
+            'categories': [{
+                'category': 'cat1',
+                'patterns': ['match']
+            }],
+            'ignore_case': True
+        })
+        blk.start()
+        blk.process_signals([
+            Signal({'text': 'YES MATCH'})
+        ])
+        blk.stop()
+        self.assert_num_signals_notified(2)
+        self.assertDictEqual(self.last_notified['default'][1].to_dict(), {
+            'text': 'YES MATCH',
+            'cats': ['cat1']
+        })
+
     def test_invalid_match_string(self):
         blk = CategorizeSignals()
         self.configure_block(blk, {
